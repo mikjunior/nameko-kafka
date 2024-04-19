@@ -44,9 +44,10 @@ class KafkaConsumer(Entrypoint):
             keyword arguments
     """
 
-    def __init__(self, *topics, semantic=None, **kwargs):
+    def __init__(self, *topics, pattern=None, semantic=None, **kwargs):
         self._topics = topics
         self._semantic = semantic
+        self._pattern = pattern
         self._config = {}
         self._consumer_cls = CONSUMER_FACTORY.get(self._semantic, DefaultConsumer)
         # Extract kafka config options from keyword arguments
@@ -81,6 +82,8 @@ class KafkaConsumer(Entrypoint):
     def setup(self):
         config = self._parse_config()
         self._consumer = self._consumer_cls(*self._topics, **config)
+        if self._pattern is not None:
+            self._consumer.subscribe(pattern=self._pattern)
 
     def start(self):
         self.container.spawn_managed_thread(
